@@ -1,5 +1,7 @@
 # job4j_threads
 
+![CI GitHubAction](https://github.com/itlazykin/job4j_threads/actions/workflows/maven.yml/badge.svg)
+
 Этот проект предназначен для изучения основ многопоточности в Java.
 
 В проекте рассмотрено следующее:
