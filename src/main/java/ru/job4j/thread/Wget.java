@@ -1,41 +1,48 @@
 package ru.job4j.thread;
 
-import java.io.*;
-import java.net.MalformedURLException;
+import org.apache.commons.validator.routines.UrlValidator;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 
 public class Wget implements Runnable {
+
     private final String url;
     private final int speed;
+    private final String path;
 
-    public Wget(String url, int speed) {
+    public Wget(String url, int speed, String path) {
         this.url = url;
         this.speed = speed;
+        this.path = path;
     }
 
     @Override
     public void run() {
-        File file = new File("tmp.xml");
-        try (InputStream input = new URL(url).openStream();
-             OutputStream output = new FileOutputStream(file)) {
+        var startAt = System.currentTimeMillis();
+        File file = new File(path);
+        try (var input = new URL(url).openStream();
+             var output = new FileOutputStream(file)) {
+            System.out.println("Open connection : " + (System.currentTimeMillis() - startAt) + " ms");
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
-            int byteSum = 0;
-            long startAt = System.currentTimeMillis();
-            System.out.println("Open connection : " + (System.currentTimeMillis() - startAt) + " ms");
+            int downloadData = 0;
+            long start = System.currentTimeMillis();
             while ((bytesRead = input.read(dataBuffer, 0, dataBuffer.length)) != -1) {
-                output.write(dataBuffer, 0, bytesRead);
-                byteSum += bytesRead;
-                if (byteSum >= speed) {
-                    long downloadTime = System.currentTimeMillis() - startAt;
-                    if (downloadTime < 1000) {
-                        Thread.sleep(1000 - downloadTime);
+                downloadData += bytesRead;
+                if (downloadData >= speed) {
+                    long interval = System.currentTimeMillis() - start;
+                    if (interval < 1000) {
+                        Thread.sleep(1000 - interval);
                     }
-                    byteSum = 0;
-                    startAt = System.currentTimeMillis();
-                    System.out.println("Read : " + (System.nanoTime() - downloadTime) + " nano.");
+                    downloadData = 0;
+                    start = System.currentTimeMillis();
                 }
+                output.write(dataBuffer, 0, bytesRead);
+                System.out.println("Read : " + (System.nanoTime() - downloadData) + " nano.");
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -49,27 +56,27 @@ public class Wget implements Runnable {
         }
     }
 
-    private static void validate(String[] args) {
-        if (args.length != 2) {
-            throw new IllegalArgumentException("Should be 2 arguments");
+    private static void validateArgs(String[] args) {
+        if (args.length != 3) {
+            throw new IllegalArgumentException("Should be 3 arguments");
         }
-        try {
-            new URL(args[0]);
-        } catch (MalformedURLException e) {
-            System.out.println("The link is not set correctly");
+        String url = args[0];
+        int speed = Integer.parseInt(args[1]);
+        UrlValidator validator = new UrlValidator();
+        if (!validator.isValid(url)) {
+            throw new IllegalArgumentException("Invalid url: " + url);
         }
-        try {
-            Integer.parseInt(args[1]);
-        } catch (IllegalArgumentException e) {
-            System.out.println("The speed is not set correctly");
+        if (speed < 1) {
+            throw new IllegalArgumentException("The speed must be greater than 1");
         }
     }
 
     public static void main(String[] args) throws InterruptedException {
-        validate(args);
+        validateArgs(args);
         String url = args[0];
         int speed = Integer.parseInt(args[1]);
-        Thread wget = new Thread(new Wget(url, speed));
+        String path = args[2];
+        Thread wget = new Thread(new Wget(url, speed, path));
         wget.start();
         wget.join();
     }
