@@ -18,7 +18,7 @@ public class ParallelSearch<T> extends RecursiveTask<Integer> {
 
     private int indexSearch() {
         int index = -1;
-        for (int i = from; i < to; i++) {
+        for (int i = from; i <= to; i++) {
             if (object.equals(objects[i])) {
                 index = i;
                 break;
