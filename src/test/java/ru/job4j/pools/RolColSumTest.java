@@ -1,7 +1,6 @@
 package ru.job4j.pools;
 
 import org.junit.jupiter.api.Test;
-import ru.job4j.nio.piped.Sums;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

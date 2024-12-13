@@ -1,7 +1,5 @@
 package ru.job4j.pools;
 
-import ru.job4j.nio.piped.Sums;
-
 import java.util.concurrent.CompletableFuture;
 
 public class RolColSum {
